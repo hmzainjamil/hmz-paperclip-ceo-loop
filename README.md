@@ -1,106 +1,120 @@
 # hmz-paperclip-ceo-loop
-Autonomous CEO strategy loop — reviews all DigiMinds goals, agents, and KPI tasks every 6 hours. Zero human input for routine operations.
+Paperclip AI CEO Loop — autonomous strategic decision engine running 24/7 as company co-founder.
 
-![schedule](https://img.shields.io/badge/schedule-every_6h-blue?style=flat&labelColor=555) ![agents](https://img.shields.io/badge/agents-50_reviewed-green?style=flat&labelColor=555) ![goals](https://img.shields.io/badge/goals-20_active-orange?style=flat&labelColor=555) [![api](https://img.shields.io/badge/API-127.0.0.1%3A3100-white?style=flat&labelColor=555)](http://127.0.0.1:3100)
+![loop](https://img.shields.io/badge/mode-24%2F7_autonomous-orange?style=flat&labelColor=555)
+![paperclip](https://img.shields.io/badge/platform-Paperclip_AI-blue?style=flat&labelColor=555)
+![status](https://img.shields.io/badge/status-always_on-green?style=flat&labelColor=555)
+![tier0](https://img.shields.io/badge/cost-Tier0_models-brightgreen?style=flat&labelColor=555)
+![license](https://img.shields.io/badge/license-MIT-blue?style=flat&labelColor=555)
 
-[Concepts](#-concepts) · [Hot](#-hot) · [Loop](#️-loop-architecture) · [Tips](#-tips-and-tricks-16) · [Replaced](#️-startups--businesses) · [Stars](#star-history)
-
----
+[Concepts](#-concepts) · [Architecture](#️-architecture) · [Tips](#-tips-and-tricks-20) · [Kills](#️-startups--businesses) · [Stars](#star-history)
 
 ## 🧠 CONCEPTS
 
 | Feature | Location | Description |
 |---------|----------|-------------|
-| [**LaunchAgent daemon**](launchagent/ai.hmz.paperclip.plist) | `ai.hmz.paperclip.plist` | `KeepAlive=true` `RunAtLoad=true` — auto-restarts within 30s of crash |
-| [**Goals review**](http://127.0.0.1:3100/api/goals) | `GET /api/goals` | All 20 active strategic goals with progress + gap analysis |
-| [**Agent review**](http://127.0.0.1:3100/api/agents) | `GET /api/agents` | All 50 agents: last run, output quality, current assignment |
-| [**Task triage**](http://127.0.0.1:3100/api/tasks) | `GET /api/tasks` | 28 KPI tasks: re-prioritize by urgency + impact |
-| [**Decision log**](http://127.0.0.1:3100/api/decisions) | `POST /api/decisions` | Every decision logged with timestamp + reasoning |
-| [**Escalation**](http://127.0.0.1:3100/api/alerts) | `POST /api/alerts` | Critical-only escalation to HMZ — threshold: budget >$500 or KPI RED |
-| [**Intel injection**](http://127.0.0.1:3100/api/intel) | `GET /api/intel/latest` | Competitor intel + market trends injected into CEO context every cycle |
+| [**OODA Decision Loop**](loop/ooda.js) | `loop/ooda.js` | Observe-Orient-Decide-Act at company level — runs every 15 minutes [![core](https://img.shields.io/badge/pattern-OODA-orange?style=flat&labelColor=555)] |
+| [**KPI Observer**](loop/observe.js) | `loop/observe.js` | Ingests revenue, pipeline, traffic, ROAS — builds current-state snapshot |
+| [**Strategic Orienter**](loop/orient.js) | `loop/orient.js` | Models opportunities vs threats — priority ranking from KPI deltas |
+| [**Decision Engine**](loop/decide.js) | `loop/decide.js` | Commits to action plan — no flip-flopping, logs every decision with rationale |
+| [**Action Executor**](loop/act.js) | `loop/act.js` | Dispatches actions to BDM, Content, Intel engines — measures outcomes |
+| [**Memory Layer**](loop/memory.js) | `loop/memory.js` | Persists decisions + outcomes — feeds next OODA cycle |
+| [**Escalation Handler**](loop/escalate.js) | `loop/escalate.js` | Flags decisions above threshold to human (Slack/email) — human-in-loop |
+| [**Tier 0 Dispatcher**](loop/dispatch.js) | `loop/dispatch.js` | Routes every sub-task to cheapest capable model — never Claude for internals |
+| [**LaunchAgent Config**](launchagent/ai.hmz.ceo-loop.plist) | `launchagent/ai.hmz.ceo-loop.plist` | KeepAlive daemon — CEO loop restarts within 10s of crash |
 
 ### 🔥 Hot
 
 | Feature | Location | Description |
 |---------|----------|-------------|
-| [**Manual trigger**](http://127.0.0.1:3100/api/ceo-loop/trigger) | `POST /api/ceo-loop/trigger` | Force immediate CEO cycle — useful after major changes |
-| [**Idempotent design**](launchagent/) | Built-in mutex | Second trigger exits immediately if loop already running — no duplicate actions |
-| [**Context enrichment**](http://127.0.0.1:3100) | All engines feed CEO | Intel + trends + KPI + leads all auto-inject into CEO context each cycle |
+| [**Paperclip Sync**](paperclip/sync.js) | `paperclip/sync.js` | Syncs decisions to Paperclip AI OS at 127.0.0.1:3100 — company ID c5066522 |
+| [**Revenue Radar**](loop/revenue-radar.js) | `loop/revenue-radar.js` | Detects MRR drops >10% — triggers emergency BDM outreach automatically |
+| [**Weekly CEO Report**](reports/weekly.py) | `reports/weekly.py` | ReportLab CEO summary — decisions made, outcomes, pipeline status |
 
----
-
-## ⚙️ LOOP ARCHITECTURE
+## ⚙️ ARCHITECTURE
 
 ```
-Every 6 hours (LaunchAgent):
-────────────────────────────
-1. GET /api/goals        → identify gaps + progress
-2. GET /api/agents       → health check all 50 agents
-3. GET /api/tasks        → re-prioritize 28 KPI tasks
-4. GET /api/intel/latest → inject competitor context
-5. GET /api/trends/latest → inject market signals
-6. DECIDE               → reassign, reprioritize, note
-7. POST /api/decisions   → log all decisions
-8. POST /api/alerts      → escalate critical only
-────────────────────────────
-Total runtime: ~2-3 minutes
+CEO Loop (15-min cycle):
+
+  OBSERVE: KPIs + pipeline + content metrics
+      │
+  ORIENT: delta analysis + opportunity ranking
+      │
+  DECIDE: action selection + rationale log
+      │
+  ACT: dispatch to engines
+      │
+      ├─ BDM Engine (lead gen + outreach)
+      ├─ Content Engine (posts + case studies)
+      ├─ Intel Engine (competitor + trends)
+      └─ KPI Monitor (alert on threshold breach)
+      │
+  MEMORY: store decision + outcome
+      │
+  LOOP (15 min later)
 ```
 
----
+| Decision Type | Threshold | Action | Model |
+|-------------|----------|--------|-------|
+| Revenue drop | >10% MRR | Emergency BDM sweep | Groq |
+| Pipeline dry | <3 active leads | LinkedIn outreach burst | GPT-4o-mini |
+| Content gap | >48h since post | Generate + schedule | Gemini |
+| Competitor move | Price change detected | Update proposals | DeepSeek |
+| Positive: new client | Signed contract | Update pipeline + celebrate | Groq |
 
-## 💡 TIPS AND TRICKS (16)
+## 💡 TIPS AND TRICKS (20)
 
-[Ops](#tips-ops) · [API](#tips-api) · [Authority](#tips-auth) · [Debug](#tips-debug)
+[loop](#tips-loop) · [decisions](#tips-decisions) · [escalation](#tips-escalation) · [integration](#tips-integration)
 
-<a id="tips-ops"></a>■ **Operations (5)**
-
-| Tip | Source |
-|-----|--------|
-| CEO loop is the master context — all 6 engines report to it | [Architecture](../hmz-digiminds-ceo/) |
-| Loop runs silently — check `/api/decisions` not logs for what it decided | [Transparency](http://127.0.0.1:3100) |
-| All decisions are idempotent — safe to re-trigger after failures | [Design](launchagent/) |
-| Tier 0 models for all CEO reasoning — zero Claude tokens consumed | [G0DM0D3](../hmz-g0dm0d3/) |
-| Daily summary auto-generated at midnight — 24h strategic overview | [Feature](http://127.0.0.1:3100) |
-
-<a id="tips-api"></a>■ **API (4)**
+<a id="tips-loop"></a>■ **Loop Configuration (5)**
 
 | Tip | Source |
 |-----|--------|
-| `curl http://127.0.0.1:3100/api/status` — first health check on every session | [API ref](http://127.0.0.1:3100) |
-| `GET /api/decisions?date=today&limit=10` — last 10 decisions today | [API ref](http://127.0.0.1:3100) |
-| `POST /api/ceo-loop/trigger` — manual cycle on demand | [API ref](http://127.0.0.1:3100) |
-| Company ID always `c5066522-bacc-4a28-b700-6590cbe366ec` in all API calls | [Config](../hmz-digiminds-ceo/) |
+| 15-minute cycle sweet spot — faster wastes tokens, slower misses time-sensitive actions | [HMZ](https://github.com/hmzainjamil) |
+| `KeepAlive=true` in LaunchAgent — CEO never stops, even after crash or sleep | [HMZ](https://github.com/hmzainjamil) |
+| Log every OODA cycle to `~/.claude/logs/ceo-loop.log` — weekly review mandatory | [HMZ](https://github.com/hmzainjamil) |
+| Memory layer uses append-only JSONL — never overwrite, always append decisions | [HMZ](https://github.com/hmzainjamil) |
+| `curl localhost:3100/health` — verify Paperclip OS running before loop starts | [HMZ](https://github.com/hmzainjamil) |
 
-<a id="tips-auth"></a>■ **Authority (4)**
-
-| Tip | Source |
-|-----|--------|
-| CEO loop never acts on budget >$500 autonomously — hardcoded limit | [Authority matrix](../hmz-digiminds-ceo/) |
-| HMZ override: `POST /api/decisions/override` with `{decision_id, override}` | [Override API](http://127.0.0.1:3100) |
-| Escalations logged separately in `/api/alerts` — review daily | [Transparency](http://127.0.0.1:3100) |
-| "HMZ is irreplaceable" is hardcoded in CEO loop — it never tries to replace HMZ | [Design principle](launchagent/) |
-
-<a id="tips-debug"></a>■ **Debug (3)**
+<a id="tips-decisions"></a>■ **Decision Quality (5)**
 
 | Tip | Source |
 |-----|--------|
-| API 503 → `launchctl start ai.hmz.paperclip` | [Runbook](../hmz-digiminds-ceo/) |
-| Loop didn't run at expected time → check `launchctl list \| grep paperclip` | [Debug](launchagent/) |
-| Logs at `~/Library/Logs/paperclip-ceo-loop.log` + `paperclip-ceo-loop-error.log` | [Log location](launchagent/) |
+| Every decision needs rationale logged — why this action, why now, expected outcome | [HMZ](https://github.com/hmzainjamil) |
+| Never reverse a decision within same cycle — OODA says commit and measure | [HMZ](https://github.com/hmzainjamil) |
+| Priority: revenue protection > growth > optimization — in that order always | [HMZ](https://github.com/hmzainjamil) |
+| Small decisions: autonomous. Large decisions (>$500 impact): escalate to human | [HMZ](https://github.com/hmzainjamil) |
+| Measure every action's outcome in next OODA cycle — feedback loop is mandatory | [HMZ](https://github.com/hmzainjamil) |
 
----
+<a id="tips-escalation"></a>■ **Human-in-Loop (5)**
+
+| Tip | Source |
+|-----|--------|
+| Slack webhook for escalations — CEO pings human for decisions above threshold | [HMZ](https://github.com/hmzainjamil) |
+| Escalation criteria: irreversible actions, >$500 impact, reputation risk | [HMZ](https://github.com/hmzainjamil) |
+| Always include context in escalation: KPI snapshot + decision rationale + options | [HMZ](https://github.com/hmzainjamil) |
+| If no human response in 2h, CEO selects lowest-risk option autonomously | [HMZ](https://github.com/hmzainjamil) |
+| Weekly CEO report PDF — human reviews decisions made, outcomes, next week plan | [HMZ](https://github.com/hmzainjamil) |
+
+<a id="tips-integration"></a>■ **Paperclip Integration (5)**
+
+| Tip | Source |
+|-----|--------|
+| Company ID `c5066522-bacc-4a28-b700-6590cbe366ec` — required for all Paperclip calls | [HMZ](https://github.com/hmzainjamil) |
+| All CEO decisions sync to Paperclip memory — persists across sessions | [HMZ](https://github.com/hmzainjamil) |
+| Paperclip OS at 127.0.0.1:3100 — local, zero cloud cost for core loop | [HMZ](https://github.com/hmzainjamil) |
+| CEO loop and Paperclip share same memory layer — one source of truth | [HMZ](https://github.com/hmzainjamil) |
+| Always route CEO loop sub-tasks to Tier 0 — never Claude tokens for internals | [HMZ](https://github.com/hmzainjamil) |
 
 ## ☠️ STARTUPS / BUSINESSES
 
 | Feature | Replaced |
 |-|-|
-| **Autonomous CEO review loop** | Weekly manual CEO meetings + [Notion](https://notion.so) status updates |
-| **50-agent health monitoring** | Manual Slack check-ins with team members |
-| **KPI task triage (every 6h)** | Monthly OKR reviews — too slow to course-correct |
-| **Decision logging** | Verbal decisions in meetings with no audit trail |
-| **Critical-only escalation** | Everything escalated to HMZ — bottleneck |
-
----
+| **Autonomous CEO Loop** | [Lindy AI](https://lindy.ai), [Beam AI](https://beam.ai), [Artisan](https://artisan.co), [11x.ai](https://11x.ai) |
+| **OODA Decision Framework** | [Notion AI](https://notion.so/ai), [Monday AI](https://monday.com/ai) |
+| **Human-in-Loop Escalation** | [Zapier](https://zapier.com), [Make.com](https://make.com) |
+| **KPI-Driven Actions** | [Databox](https://databox.com), [Klipfolio](https://klipfolio.com) |
+| **Memory + Decision Log** | [Mem.ai](https://mem.ai), [Rewind AI](https://rewind.ai) |
 
 ## Star History
 
