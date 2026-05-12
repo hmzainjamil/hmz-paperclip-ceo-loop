@@ -1,121 +1,103 @@
 # hmz-paperclip-ceo-loop
-Paperclip AI CEO Loop — autonomous strategic decision engine running 24/7 as company co-founder.
+> CEO decision loop — reads goals, fires agents, synthesizes strategy. Part of the DigiMinds Paperclip automation engine suite.
 
-![loop](https://img.shields.io/badge/mode-24%2F7_autonomous-orange?style=flat&labelColor=555)
-![paperclip](https://img.shields.io/badge/platform-Paperclip_AI-blue?style=flat&labelColor=555)
-![status](https://img.shields.io/badge/status-always_on-green?style=flat&labelColor=555)
-![tier0](https://img.shields.io/badge/cost-Tier0_models-brightgreen?style=flat&labelColor=555)
-![license](https://img.shields.io/badge/license-MIT-blue?style=flat&labelColor=555)
+[![paperclip](https://img.shields.io/badge/Paperclip-engine-blue?style=flat&labelColor=555)](https://github.com/paperclipai/paperclip)
+[![mae](https://img.shields.io/badge/MAE-powered-green?style=flat&labelColor=555)](.)
+[![tools](https://img.shields.io/badge/tools-MAE-orange?style=flat&labelColor=555)](.)
+[![tier0](https://img.shields.io/badge/tier0-zero--cost-purple?style=flat&labelColor=555)](.)
+[![license](https://img.shields.io/badge/license-MIT-lightgrey?style=flat&labelColor=555)](LICENSE)
 
-[Concepts](#-concepts) · [Architecture](#️-architecture) · [Tips](#-tips-and-tricks-20) · [Kills](#️-startups--businesses) · [Stars](#star-history)
+[concepts](#concepts) · [architecture](#architecture) · [tips](#tips) · [startups](#startups) · [star](#star)
 
-## 🧠 CONCEPTS
+---
+
+## 🧠 CONCEPTS <a id="concepts"></a>
 
 | Feature | Location | Description |
-|---------|----------|-------------|
-| [**OODA Decision Loop**](loop/ooda.js) | `loop/ooda.js` | Observe-Orient-Decide-Act at company level — runs every 15 minutes [![core](https://img.shields.io/badge/pattern-OODA-orange?style=flat&labelColor=555)] |
-| [**KPI Observer**](loop/observe.js) | `loop/observe.js` | Ingests revenue, pipeline, traffic, ROAS — builds current-state snapshot |
-| [**Strategic Orienter**](loop/orient.js) | `loop/orient.js` | Models opportunities vs threats — priority ranking from KPI deltas |
-| [**Decision Engine**](loop/decide.js) | `loop/decide.js` | Commits to action plan — no flip-flopping, logs every decision with rationale |
-| [**Action Executor**](loop/act.js) | `loop/act.js` | Dispatches actions to BDM, Content, Intel engines — measures outcomes |
-| [**Memory Layer**](loop/memory.js) | `loop/memory.js` | Persists decisions + outcomes — feeds next OODA cycle |
-| [**Escalation Handler**](loop/escalate.js) | `loop/escalate.js` | Flags decisions above threshold to human (Slack/email) — human-in-loop |
-| [**Tier 0 Dispatcher**](loop/dispatch.js) | `loop/dispatch.js` | Routes every sub-task to cheapest capable model — never Claude for internals |
-| [**LaunchAgent Config**](launchagent/ai.hmz.ceo-loop.plist) | `launchagent/ai.hmz.ceo-loop.plist` | KeepAlive daemon — CEO loop restarts within 10s of crash |
+|---|---|---|
+| [**Core Engine**](engine/) | `engine/` | Main orchestration loop — reads from Paperclip → executes → reports back |
+| [**Paperclip Sync**](sync/) | `sync/` | Bidirectional sync with Paperclip API at localhost:3100 |
+| [**MAE Integration**](mae/) | `mae/` | Routes tasks through MAE swarm — wave-batched, RAM-safe |
+| [**Tier 0 Routing**](routing/) | `routing/` | Tools used: MAE · Groq-70B · Paperclip API |
+| [**Output Storage**](outputs/) | `outputs/` | Results saved to `~/.claude/tcc-logs/` + synced to Paperclip |
+| [**LaunchAgent**](launchagents/) | `launchagents/` | Optional persistent LaunchAgent — runs engine on schedule |
 
 ### 🔥 Hot
 
 | Feature | Location | Description |
-|---------|----------|-------------|
-| [**Paperclip Sync**](paperclip/sync.js) | `paperclip/sync.js` | Syncs decisions to Paperclip AI OS at 127.0.0.1:3100 — company ID c5066522 |
-| [**Revenue Radar**](loop/revenue-radar.js) | `loop/revenue-radar.js` | Detects MRR drops >10% — triggers emergency BDM outreach automatically |
-| [**Weekly CEO Report**](reports/weekly.py) | `reports/weekly.py` | ReportLab CEO summary — decisions made, outcomes, pipeline status |
+|---|---|---|
+| [**Zero-cost execution**](engine/) | `engine/` | All processing via Tier 0 models — Groq, Gemini, Kimi, Bytez |
+| [**Auto-retry**](engine/) | `engine/` | Failed tasks auto-retry with fallback model via TCC retry mechanism |
+| [**Paperclip goal sync**](sync/) | `sync/` | Reads outstanding goals from Paperclip every run cycle |
 
-## ⚙️ ARCHITECTURE
+---
+
+## ⚙️ ARCHITECTURE <a id="architecture"></a>
 
 ```
-CEO Loop (15-min cycle):
-
-  OBSERVE: KPIs + pipeline + content metrics
-      │
-  ORIENT: delta analysis + opportunity ranking
-      │
-  DECIDE: action selection + rationale log
-      │
-  ACT: dispatch to engines
-      │
-      ├─ BDM Engine (lead gen + outreach)
-      ├─ Content Engine (posts + case studies)
-      ├─ Intel Engine (competitor + trends)
-      └─ KPI Monitor (alert on threshold breach)
-      │
-  MEMORY: store decision + outcome
-      │
-  LOOP (15 min later)
+Paperclip CEO Layer (localhost:3100)
+         │
+         │ reads goals + tasks
+         ▼
+    Ceo Loop Engine
+         │
+    MAE decompose
+         │
+    Tier 0 swarm (MAE · Groq-70B · Paperclip API)
+         │
+    synthesis + output
+         │
+         │ reports results
+         ▼
+Paperclip CEO Layer (updated goals)
 ```
 
-| Decision Type | Threshold | Action | Model |
-|-------------|----------|--------|-------|
-| Revenue drop | >10% MRR | Emergency BDM sweep | Groq |
-| Pipeline dry | <3 active leads | LinkedIn outreach burst | GPT-4o-mini |
-| Content gap | >48h since post | Generate + schedule | Gemini |
-| Competitor move | Price change detected | Update proposals | DeepSeek |
-| Positive: new client | Signed contract | Update pipeline + celebrate | Groq |
+| Phase | Model | Purpose |
+|---|---|---|
+| Decompose | Groq llama-3.1-8b-instant | Break goal into sub-tasks |
+| Execute | MAE + more | Run specialist tasks |
+| Synthesize | Groq llama-3.3-70b-versatile | Merge outputs |
+| Report | Paperclip API | Update goal status |
 
-## 💡 TIPS AND TRICKS (20)
+---
 
-[loop](#tips-loop) · [decisions](#tips-decisions) · [escalation](#tips-escalation) · [integration](#tips-integration)
+## 💡 TIPS AND TRICKS (8) <a id="tips"></a>
 
-<a id="tips-loop"></a>■ **Loop Configuration (5)**
+[engine-ops](#tips-ops) · [paperclip-integration](#tips-pc)
 
-| Tip | Source |
-|-----|--------|
-| 15-minute cycle sweet spot — faster wastes tokens, slower misses time-sensitive actions | [HMZ](https://github.com/hmzainjamil) |
-| `KeepAlive=true` in LaunchAgent — CEO never stops, even after crash or sleep | [HMZ](https://github.com/hmzainjamil) |
-| Log every OODA cycle to `~/.claude/logs/ceo-loop.log` — weekly review mandatory | [HMZ](https://github.com/hmzainjamil) |
-| Memory layer uses append-only JSONL — never overwrite, always append decisions | [HMZ](https://github.com/hmzainjamil) |
-| `curl localhost:3100/health` — verify Paperclip OS running before loop starts | [HMZ](https://github.com/hmzainjamil) |
-
-<a id="tips-decisions"></a>■ **Decision Quality (5)**
+<a id="tips-ops"></a>
+■ **Engine Operations (4)**
 
 | Tip | Source |
-|-----|--------|
-| Every decision needs rationale logged — why this action, why now, expected outcome | [HMZ](https://github.com/hmzainjamil) |
-| Never reverse a decision within same cycle — OODA says commit and measure | [HMZ](https://github.com/hmzainjamil) |
-| Priority: revenue protection > growth > optimization — in that order always | [HMZ](https://github.com/hmzainjamil) |
-| Small decisions: autonomous. Large decisions (>$500 impact): escalate to human | [HMZ](https://github.com/hmzainjamil) |
-| Measure every action's outcome in next OODA cycle — feedback loop is mandatory | [HMZ](https://github.com/hmzainjamil) |
+|---|---|
+| Start: `python3 engine/main.py` or load LaunchAgent for persistent operation | [hmzainjamil](https://github.com/hmzainjamil) |
+| `mae run "goal"` triggers this engine via TCC routing when keyword matches | [hmzainjamil](https://github.com/hmzainjamil) |
+| All outputs go to `~/.claude/tcc-logs/mae-TIMESTAMP.md` — searchable history | [hmzainjamil](https://github.com/hmzainjamil) |
+| `tcc watch` monitors engine task queue in real-time — see active/pending/done | [hmzainjamil](https://github.com/hmzainjamil) |
 
-<a id="tips-escalation"></a>■ **Human-in-Loop (5)**
-
-| Tip | Source |
-|-----|--------|
-| Slack webhook for escalations — CEO pings human for decisions above threshold | [HMZ](https://github.com/hmzainjamil) |
-| Escalation criteria: irreversible actions, >$500 impact, reputation risk | [HMZ](https://github.com/hmzainjamil) |
-| Always include context in escalation: KPI snapshot + decision rationale + options | [HMZ](https://github.com/hmzainjamil) |
-| If no human response in 2h, CEO selects lowest-risk option autonomously | [HMZ](https://github.com/hmzainjamil) |
-| Weekly CEO report PDF — human reviews decisions made, outcomes, next week plan | [HMZ](https://github.com/hmzainjamil) |
-
-<a id="tips-integration"></a>■ **Paperclip Integration (5)**
+<a id="tips-pc"></a>
+■ **Paperclip Integration (4)**
 
 | Tip | Source |
-|-----|--------|
-| Company ID `c5066522-bacc-4a28-b700-6590cbe366ec` — required for all Paperclip calls | [HMZ](https://github.com/hmzainjamil) |
-| All CEO decisions sync to Paperclip memory — persists across sessions | [HMZ](https://github.com/hmzainjamil) |
-| Paperclip OS at 127.0.0.1:3100 — local, zero cloud cost for core loop | [HMZ](https://github.com/hmzainjamil) |
-| CEO loop and Paperclip share same memory layer — one source of truth | [HMZ](https://github.com/hmzainjamil) |
-| Always route CEO loop sub-tasks to Tier 0 — never Claude tokens for internals | [HMZ](https://github.com/hmzainjamil) |
+|---|---|
+| Paperclip must be running: `cd ~/installed-repos/paperclip && pnpm dev` | [Paperclip AI](https://github.com/paperclipai) |
+| Company ID `c5066522-bacc-4a28-b700-6590cbe366ec` scopes all API calls to DigiMinds | [hmzainjamil](https://github.com/hmzainjamil) |
+| Engine falls back to `llm-burst` if Paperclip API returns 404 | [hmzainjamil](https://github.com/hmzainjamil) |
+| Set engine goals via Paperclip dashboard → engine picks up on next run cycle | [Paperclip AI](https://github.com/paperclipai) |
 
-## ☠️ STARTUPS / BUSINESSES
+---
+
+## ☠️ STARTUPS / BUSINESSES <a id="startups"></a>
 
 | Feature | Replaced |
-|-|-|
-| **Autonomous CEO Loop** | [Lindy AI](https://lindy.ai), [Beam AI](https://beam.ai), [Artisan](https://artisan.co), [11x.ai](https://11x.ai) |
-| **OODA Decision Framework** | [Notion AI](https://notion.so/ai), [Monday AI](https://monday.com/ai) |
-| **Human-in-Loop Escalation** | [Zapier](https://zapier.com), [Make.com](https://make.com) |
-| **KPI-Driven Actions** | [Databox](https://databox.com), [Klipfolio](https://klipfolio.com) |
-| **Memory + Decision Log** | [Mem.ai](https://mem.ai), [Rewind AI](https://rewind.ai) |
+|---|---|
+| **Autonomous engine loop** | [AutoGPT](https://autogpt.net), [AgentGPT](https://agentgpt.reworkd.ai), [BabyAGI](https://github.com/yoheinakajima/babyagi) |
+| **Paperclip company OS** | [Notion AI](https://notion.so), [Monday.com](https://monday.com), [Asana](https://asana.com) |
+| **Zero-cost Tier 0 execution** | [CrewAI Cloud](https://crewai.com), [LangSmith](https://smith.langchain.com) |
+| **MAE swarm synthesis** | [LangGraph](https://langgraph.com), [AutoGen](https://github.com/microsoft/autogen) |
 
-## Star History
+---
+
+## Star History <a id="star"></a>
 
 [![Star History Chart](https://api.star-history.com/svg?repos=hmzainjamil/hmz-paperclip-ceo-loop&type=Date)](https://star-history.com/#hmzainjamil/hmz-paperclip-ceo-loop&Date)
